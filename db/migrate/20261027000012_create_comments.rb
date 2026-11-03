@@ -7,7 +7,7 @@ class CreateComments < ActiveRecord::Migration[8.1]
       t.references :parent, type: :uuid, foreign_key: { to_table: :comments }
       t.text :body, null: false
       t.datetime :deleted_at
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index [ :meme_id, :created_at ]
     end

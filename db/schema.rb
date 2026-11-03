@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_03_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "citext"
   enable_extension "pg_catalog.plpgsql"
@@ -30,7 +30,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.text "body", null: false
     t.datetime "deleted_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["author_id"], name: "index_comments_on_author_id"
     t.index ["meme_id", "created_at"], name: "index_comments_on_meme_id_and_created_at"
     t.index ["parent_id"], name: "index_comments_on_parent_id"
@@ -44,7 +43,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.uuid "owner_id", null: false
     t.boolean "is_private", default: false, null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["owner_id"], name: "index_communities_on_owner_id"
     t.index ["slug"], name: "index_communities_on_slug", unique: true
   end
@@ -102,7 +100,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.datetime "deleted_at"
     t.datetime "removed_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["author_id", "created_at"], name: "index_memes_on_author_id_and_created_at"
     t.index ["community_id", "created_at"], name: "index_memes_on_community_id_and_created_at"
     t.index ["created_at"], name: "index_memes_on_created_at_visible", where: "((deleted_at IS NULL) AND (removed_at IS NULL))"
@@ -128,16 +125,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
   create_table "notifications", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.uuid "user_id", null: false
     t.uuid "actor_id", null: false
-    t.string "kind", null: false
+    t.string "type", null: false
     t.string "target_type"
     t.uuid "target_id"
     t.datetime "read_at"
     t.datetime "created_at", null: false
     t.index ["actor_id"], name: "index_notifications_on_actor_id"
     t.index ["user_id", "created_at"], name: "index_notifications_on_user_id_and_created_at"
-    t.index ["user_id", "kind", "target_type", "target_id"], name: "index_notifications_for_grouping"
+    t.index ["user_id", "type", "target_type", "target_id"], name: "index_notifications_for_grouping"
     t.index ["user_id"], name: "index_notifications_unread", where: "(read_at IS NULL)"
-    t.check_constraint "kind::text = ANY (ARRAY['laugh'::character varying, 'comment'::character varying, 'follow'::character varying]::text[])", name: "notifications_kind_check"
+    t.check_constraint "type::text = ANY (ARRAY['laugh'::character varying, 'comment'::character varying, 'follow'::character varying]::text[])", name: "notifications_type_check"
   end
 
   create_table "plans", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -148,14 +145,13 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.jsonb "perks", default: {}, null: false
     t.boolean "is_active", default: true, null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["slug"], name: "index_plans_on_slug", unique: true
     t.check_constraint "\"interval\"::text = ANY (ARRAY['month'::character varying, 'year'::character varying]::text[])", name: "plans_interval_check"
     t.check_constraint "price_cents >= 0", name: "plans_price_cents_check"
   end
 
   create_table "ranking_entries", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
-    t.string "subject_type", null: false
+    t.string "scope", null: false
     t.uuid "subject_id", null: false
     t.string "period", null: false
     t.date "period_start", null: false
@@ -163,11 +159,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.integer "score", default: 0, null: false
     t.datetime "computed_at", null: false
     t.datetime "created_at", null: false
-    t.index ["subject_type", "period", "period_start", "position"], name: "index_ranking_entries_for_leaderboard"
-    t.index ["subject_type", "subject_id", "period", "period_start"], name: "index_ranking_entries_uniqueness", unique: true
+    t.index ["scope", "period", "period_start", "position"], name: "index_ranking_entries_for_leaderboard"
+    t.index ["scope", "subject_id", "period", "period_start"], name: "index_ranking_entries_uniqueness", unique: true
     t.check_constraint "\"position\" > 0", name: "ranking_entries_position_check"
     t.check_constraint "period::text = ANY (ARRAY['week'::character varying, 'month'::character varying]::text[])", name: "ranking_entries_period_check"
-    t.check_constraint "subject_type::text = ANY (ARRAY['User'::character varying, 'Community'::character varying]::text[])", name: "ranking_entries_subject_type_check"
+    t.check_constraint "scope::text = ANY (ARRAY['user'::character varying, 'community'::character varying]::text[])", name: "ranking_entries_scope_check"
   end
 
   create_table "reports", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -180,7 +176,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.uuid "resolved_by_id"
     t.datetime "resolved_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["community_id", "status"], name: "index_reports_on_community_id_and_status"
     t.index ["reporter_id"], name: "index_reports_on_reporter_id"
     t.index ["status", "created_at"], name: "index_reports_on_status_and_created_at"
@@ -188,6 +183,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.check_constraint "reason::text = ANY (ARRAY['spam'::character varying, 'hate'::character varying, 'nudity'::character varying, 'other'::character varying]::text[])", name: "reports_reason_check"
     t.check_constraint "status::text = ANY (ARRAY['open'::character varying, 'resolved'::character varying, 'dismissed'::character varying]::text[])", name: "reports_status_check"
     t.check_constraint "target_type::text = ANY (ARRAY['Meme'::character varying, 'Comment'::character varying, 'User'::character varying]::text[])", name: "reports_target_type_check"
+  end
+
+  create_table "sessions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
+    t.string "token_digest", null: false
+    t.string "user_agent"
+    t.string "ip_address"
+    t.datetime "last_used_at"
+    t.datetime "created_at", null: false
+    t.index ["token_digest"], name: "index_sessions_on_token_digest", unique: true
+    t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
   create_table "subscriptions", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
@@ -198,7 +204,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
     t.string "provider_ref"
     t.datetime "canceled_at"
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["plan_id"], name: "index_subscriptions_on_plan_id"
     t.index ["provider_ref"], name: "index_subscriptions_on_provider_ref", unique: true
     t.index ["user_id"], name: "index_subscriptions_on_user_id"
@@ -217,13 +222,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
   create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.citext "username", null: false
     t.citext "email", null: false
-    t.string "password_digest", null: false
+    t.string "password_hash", null: false
     t.string "display_name"
     t.string "avatar_url"
     t.text "bio"
     t.string "status", default: "active", null: false
     t.datetime "created_at", null: false
-    t.datetime "updated_at", null: false
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["username"], name: "index_users_on_username", unique: true
     t.check_constraint "status::text = ANY (ARRAY['active'::character varying, 'suspended'::character varying, 'banned'::character varying]::text[])", name: "users_status_check"
@@ -253,6 +257,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_27_000018) do
   add_foreign_key "reports", "communities"
   add_foreign_key "reports", "users", column: "reporter_id"
   add_foreign_key "reports", "users", column: "resolved_by_id"
+  add_foreign_key "sessions", "users", on_delete: :cascade
   add_foreign_key "subscriptions", "plans"
   add_foreign_key "subscriptions", "users"
 end

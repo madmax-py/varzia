@@ -8,7 +8,7 @@ class CreateSubscriptions < ActiveRecord::Migration[8.1]
       # Id of the subscription at the payment gateway.
       t.string :provider_ref
       t.datetime :canceled_at
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index :user_id
       t.index :user_id, unique: true, where: "status IN ('active', 'past_due')", name: "index_subscriptions_one_current_per_user"

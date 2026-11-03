@@ -29,7 +29,7 @@ module VarziaApi
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
 
-    # Every table uses uuid ids (gen_random_uuid).
+    # Every table uses uuid ids (uuidv7, assigned in ApplicationRecord).
     config.generators do |g|
       g.orm :active_record, primary_key_type: :uuid
     end

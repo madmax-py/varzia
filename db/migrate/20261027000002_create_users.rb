@@ -3,12 +3,12 @@ class CreateUsers < ActiveRecord::Migration[8.1]
     create_table :users, id: :uuid, default: -> { "gen_random_uuid()" } do |t|
       t.citext :username, null: false
       t.citext :email, null: false
-      t.string :password_digest, null: false
+      t.string :password_hash, null: false
       t.string :display_name
       t.string :avatar_url
       t.text :bio
       t.string :status, null: false, default: "active"
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index :username, unique: true
       t.index :email, unique: true

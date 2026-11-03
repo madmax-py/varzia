@@ -8,7 +8,7 @@ class CreateMemes < ActiveRecord::Migration[8.1]
       t.integer :laugh_count, null: false, default: 0
       t.datetime :deleted_at
       t.datetime :removed_at
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index [ :author_id, :created_at ]
       t.index [ :community_id, :created_at ]

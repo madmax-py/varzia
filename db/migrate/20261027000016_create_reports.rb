@@ -9,7 +9,7 @@ class CreateReports < ActiveRecord::Migration[8.1]
       t.string :status, null: false, default: "open"
       t.references :resolved_by, type: :uuid, index: false, foreign_key: { to_table: :users }
       t.datetime :resolved_at
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index [ :status, :created_at ]
       t.index [ :community_id, :status ]

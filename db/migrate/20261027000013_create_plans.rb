@@ -7,7 +7,7 @@ class CreatePlans < ActiveRecord::Migration[8.1]
       t.string :interval, null: false
       t.jsonb :perks, null: false, default: {}
       t.boolean :is_active, null: false, default: true
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index :slug, unique: true
       t.check_constraint "price_cents >= 0", name: "plans_price_cents_check"

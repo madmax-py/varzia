@@ -1,4 +1,6 @@
 class User < ApplicationRecord
+  # The column is password_hash; has_secure_password expects password_digest.
+  alias_attribute :password_digest, :password_hash
   has_secure_password
 
   enum :status, { active: "active", suspended: "suspended", banned: "banned" }, default: :active, validate: true
@@ -21,6 +23,7 @@ class User < ApplicationRecord
   has_many :community_memberships, class_name: "CommunityMember", dependent: :delete_all
   has_many :communities, through: :community_memberships
 
+  has_many :sessions, dependent: :delete_all
   has_many :subscriptions
   has_many :notifications, dependent: :delete_all
   has_many :reports, foreign_key: :reporter_id, inverse_of: :reporter
@@ -30,6 +33,11 @@ class User < ApplicationRecord
 
   normalizes :email, with: ->(email) { email.strip.downcase }
   normalizes :username, with: ->(username) { username.strip.delete_prefix("@") }
+
+  # Only public fields by default; pass `only:` to expose more (e.g. email to the owner).
+  def as_json(options = nil)
+    super({ only: %i[ id username display_name avatar_url bio created_at ] }.merge(options || {}))
+  end
 
   def blocking?(user)
     active_blocks.exists?(blocked_id: user.id)

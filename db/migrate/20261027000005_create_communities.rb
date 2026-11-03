@@ -7,7 +7,7 @@ class CreateCommunities < ActiveRecord::Migration[8.1]
       t.string :avatar_url
       t.references :owner, type: :uuid, null: false, foreign_key: { to_table: :users }
       t.boolean :is_private, null: false, default: false
-      t.timestamps
+      t.datetime :created_at, null: false
 
       t.index :slug, unique: true
     end
