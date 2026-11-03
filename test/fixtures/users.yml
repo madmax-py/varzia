@@ -1,0 +1,13 @@
+# All fixture users have the password "password".
+fulano:
+  username: fulano
+  email: fulano@example.com
+  password_hash: <%= BCrypt::Password.create("password", cost: BCrypt::Engine::MIN_COST) %>
+  display_name: Fulano
+  status: active
+
+banido:
+  username: banido
+  email: banido@example.com
+  password_hash: <%= BCrypt::Password.create("password", cost: BCrypt::Engine::MIN_COST) %>
+  status: banned
